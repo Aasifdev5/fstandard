@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
-import 'sign_in_screen.dart';
-import 'phone_verify_screen.dart'; // ← NEW: Import the phone verify screen
+import 'signup_screen.dart';
 import 'utils.dart';
 import 'main.dart';
+import 'reset_password_screen.dart';
 
-class SignUpScreen extends StatefulWidget {
-  const SignUpScreen({super.key});
+class SignInScreen extends StatefulWidget {
+  const SignInScreen({super.key});
   @override
-  State<SignUpScreen> createState() => _SignUpScreenState();
+  State<SignInScreen> createState() => _SignInScreenState();
 }
 
-class _SignUpScreenState extends State<SignUpScreen>
+class _SignInScreenState extends State<SignInScreen>
     with SingleTickerProviderStateMixin {
-  final usernameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   bool hidePassword = true;
@@ -36,7 +35,6 @@ class _SignUpScreenState extends State<SignUpScreen>
 
   @override
   void dispose() {
-    usernameController.dispose();
     emailController.dispose();
     passwordController.dispose();
     _anim.dispose();
@@ -78,22 +76,17 @@ class _SignUpScreenState extends State<SignUpScreen>
                   child: Icon(Icons.show_chart, color: prim, size: 28),
                 ),
                 const Text(
-                  "Join StockWave",
+                  "Hi there!",
                   style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  "Embark on your investment journey with a single dollar.",
+                  "Welcome back, Sign in to your account",
                   style: TextStyle(
                     color: isDark ? Colors.white70 : Colors.grey,
                   ),
                 ),
                 const SizedBox(height: 30),
-                TextField(
-                  controller: usernameController,
-                  decoration: const InputDecoration(hintText: "Username"),
-                ),
-                const SizedBox(height: 16),
                 TextField(
                   controller: emailController,
                   decoration: const InputDecoration(hintText: "Email"),
@@ -117,13 +110,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
-                      // Navigate to Phone Verification Screen
-                      Navigator.push(
-                        context,
-                        fadePageRoute(const PhoneVerifyScreen()),
-                      );
-                    },
+                    onPressed: () {},
                     style: ElevatedButton.styleFrom(
                       backgroundColor: prim,
                       padding: const EdgeInsets.symmetric(vertical: 15),
@@ -132,11 +119,30 @@ class _SignUpScreenState extends State<SignUpScreen>
                       ),
                     ),
                     child: const Text(
-                      "Continue",
+                      "Sign in",
                       style: TextStyle(color: Colors.white, fontSize: 16),
                     ),
                   ),
                 ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        fadePageRoute(const ResetPasswordScreen()),
+                      );
+                    },
+                    child: const Text(
+                      "Forgot password?",
+                      style: TextStyle(
+                        color: Color(0xFF355CFF),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+
                 const SizedBox(height: 20),
                 Row(
                   children: [
@@ -156,13 +162,13 @@ class _SignUpScreenState extends State<SignUpScreen>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("Already have an account? "),
+                    const Text("Don't have an account? "),
                     GestureDetector(
                       onTap: () => Navigator.push(
                         context,
-                        fadePageRoute(const SignInScreen()),
+                        fadePageRoute(const SignUpScreen()),
                       ),
-                      child: Text("Sign In", style: TextStyle(color: prim)),
+                      child: Text("Sign up", style: TextStyle(color: prim)),
                     ),
                   ],
                 ),

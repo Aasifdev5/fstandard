@@ -1,78 +1,74 @@
 import 'package:flutter/material.dart';
-import 'onboarding_main.dart';
+import 'splash_screen.dart';
+import 'utils.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() => runApp(const StocklineApp());
+
+class StocklineApp extends StatefulWidget {
+  const StocklineApp({super.key});
+  @override
+  State<StocklineApp> createState() => _StocklineAppState();
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class _StocklineAppState extends State<StocklineApp> {
+  ThemeMode _mode = ThemeMode.light;
+  void _toggle() => setState(
+    () => _mode = _mode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light,
+  );
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Stockline App',
-      theme: ThemeData(useMaterial3: true),
+      title: 'Stockline',
+      theme: _light,
+      darkTheme: _dark,
+      themeMode: _mode,
       home: const SplashScreen(),
+      builder: (c, child) => ThemeSwitcher(toggle: _toggle, child: child!),
     );
   }
 }
 
-class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
-
+class ThemeSwitcher extends InheritedWidget {
+  final VoidCallback toggle;
+  const ThemeSwitcher({required this.toggle, required super.child, super.key});
+  static ThemeSwitcher? of(BuildContext ctx) =>
+      ctx.dependOnInheritedWidgetOfExactType<ThemeSwitcher>();
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  bool updateShouldNotify(_) => false;
 }
 
-class _SplashScreenState extends State<SplashScreen> {
-  @override
-  void initState() {
-    super.initState();
+final ThemeData _light = ThemeData(
+  useMaterial3: true,
+  colorScheme: ColorScheme.fromSeed(
+    seedColor: primary,
+    brightness: Brightness.light,
+  ),
+  scaffoldBackgroundColor: Colors.white,
+  inputDecorationTheme: InputDecorationTheme(
+    filled: true,
+    fillColor: const Color(0xFFF3F4F6),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: BorderSide.none,
+    ),
+  ),
+);
 
-    Future.delayed(const Duration(seconds: 2), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const OnboardingMain()),
-      );
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: const Color(0xFF4F6AF3),
-                    width: 2.5,
-                  ),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.show_chart,
-                  size: 28,
-                  color: Color(0xFF4F6AF3),
-                ),
-              ),
-              const SizedBox(height: 18),
-              const Text(
-                "Stockline",
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
+final ThemeData _dark = ThemeData(
+  useMaterial3: true,
+  colorScheme: ColorScheme.fromSeed(
+    seedColor: primary,
+    brightness: Brightness.dark,
+  ),
+  scaffoldBackgroundColor: const Color(0xFF121212),
+  inputDecorationTheme: InputDecorationTheme(
+    filled: true,
+    fillColor: const Color(0xFF2A2A2A),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: BorderSide.none,
+    ),
+  ),
+);
