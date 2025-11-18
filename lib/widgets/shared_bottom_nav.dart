@@ -1,7 +1,10 @@
+// lib/widgets/shared_bottom_nav.dart
 import 'package:flutter/material.dart';
 import '../home_screen.dart';
-import '../portfolio_screen.dart';
-import '../profile_screen.dart';
+import '../holdings_screen.dart'; // ← Your long-term portfolio
+import '../positions_screen.dart'; // ← Today's live P&L
+import '../orders_screen.dart'; // ← Orders history
+import '../profile_screen.dart'; // ← Profile
 import '../utils.dart';
 
 class SharedBottomNav extends StatelessWidget {
@@ -23,19 +26,13 @@ class SharedBottomNav extends StatelessWidget {
         nextScreen = const HomeScreen();
         break;
       case 1:
-        nextScreen = const PortfolioScreen();
+        nextScreen = const HoldingsScreen(); // Long-term investments
         break;
       case 2:
-        nextScreen = const Scaffold(
-          body: Center(
-            child: Text("Add Stocks", style: TextStyle(fontSize: 24)),
-          ),
-        );
+        nextScreen = const PositionsScreen(); // Intraday + F&O live positions
         break;
       case 3:
-        nextScreen = const Scaffold(
-          body: Center(child: Text("Charts", style: TextStyle(fontSize: 24))),
-        );
+        nextScreen = const OrdersScreen(); // Open/Executed/Cancelled orders
         break;
       case 4:
         nextScreen = const ProfileScreen();
@@ -44,44 +41,60 @@ class SharedBottomNav extends StatelessWidget {
         nextScreen = const HomeScreen();
     }
 
-    Navigator.push(parentContext, fadePageRoute(nextScreen));
+    Navigator.pushAndRemoveUntil(
+      parentContext,
+      fadePageRoute(nextScreen),
+      (route) => false,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final prim = theme.colorScheme.primary;
-    final inactive = theme.brightness == Brightness.dark
-        ? Colors.white70
-        : Colors.black54;
+    const prim = Color(0xFF6C63FF);
+    const bg = Color(0xFF0E1115);
 
     return Container(
-      decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(color: Colors.grey.shade300, width: 0.5),
-        ),
+      decoration: const BoxDecoration(
+        color: bg,
+        border: Border(top: BorderSide(color: Color(0xFF2A2A2A), width: 0.8)),
       ),
       child: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-        backgroundColor: theme.scaffoldBackgroundColor,
+        backgroundColor: Colors.transparent,
         selectedItemColor: prim,
-        unselectedItemColor: inactive,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
+        unselectedItemColor: Colors.grey[600],
+        selectedFontSize: 12,
+        unselectedFontSize: 11,
+        showSelectedLabels: true,
+        showUnselectedLabels: true,
         currentIndex: currentIndex,
         onTap: _onTabTapped,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: ""),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home),
+            label: "Home",
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.pie_chart_outline),
-            label: "",
+            activeIcon: Icon(Icons.pie_chart),
+            label: "Holdings",
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.add_circle_outline),
-            label: "",
+            icon: Icon(Icons.bar_chart),
+            activeIcon: Icon(Icons.bar_chart_rounded),
+            label: "Positions",
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.show_chart), label: ""),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: ""),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.receipt_long_outlined),
+            activeIcon: Icon(Icons.receipt_long),
+            label: "Orders",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
+            label: "Profile",
+          ),
         ],
       ),
     );

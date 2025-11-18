@@ -1,9 +1,7 @@
-// lib/home_screen.dart
+// lib/screens/home_screen.dart
 import 'package:flutter/material.dart';
-import 'utils.dart';
-import 'profile_screen.dart';
-import 'portfolio_screen.dart';
-import 'widgets/shared_bottom_nav.dart'; // ← NEW: Shared navigation
+import '../widgets/shared_bottom_nav.dart';
+import 'profile_info_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,6 +13,9 @@ class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _anim;
   late final Animation<double> _fade;
+
+  int _selectedTab = 1; // 0: Stocks, 1: F&O, 2: Mutual Funds, 3: FD
+  final List<String> categories = ['Stocks', 'F&O', 'Mutual Funds', 'FD'];
 
   @override
   void initState() {
@@ -38,370 +39,640 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final prim = theme.colorScheme.primary;
-    final isDark = theme.brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF121212) : Colors.white;
-    final cardBg = isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF8F9FA);
+    const bg = Color(0xFF0E1115);
+    const prim = Color(0xFF6C63FF);
+    final textMuted = Colors.grey[400]!;
 
     return Scaffold(
       backgroundColor: bg,
       appBar: AppBar(
         backgroundColor: bg,
         elevation: 0,
+        leadingWidth: 56,
         leading: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Image.asset("assets/wel.png", width: 24, height: 24),
-        ),
-        title: const Text(
-          "StockWave",
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {},
+          padding: const EdgeInsets.only(left: 12),
+          child: Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: const Color(0xFF0F1720),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Center(
+              child: Image.asset('assets/wel.png', width: 22, height: 22),
+            ),
           ),
-        ],
+        ),
+        title: Row(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  // TODO: Navigate to SearchScreen()
+                  // Navigator.push(context, MaterialPageRoute(builder: (_) => const SearchScreen()));
+                },
+                child: Container(
+                  height: 40,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF111418),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.search,
+                        color: Color(0xFF6B6F76),
+                        size: 18,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          "Search Niftybees, ITBEES",
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: textMuted, fontSize: 14),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(width: 12),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ProfileInfoScreen()),
+                );
+              },
+              child: CircleAvatar(
+                radius: 18,
+                backgroundColor: const Color(0xFF1A1F24),
+                child: const Icon(Icons.person_outline, color: Colors.white),
+              ),
+            ),
+          ],
+        ),
       ),
       body: FadeTransition(
         opacity: _fade,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                "Portfolio value",
-                style: TextStyle(fontSize: 16, color: Color(0xFF8A8A8A)),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  const Text(
-                    "\$13,240.11",
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                  ),
-                  const Spacer(),
-                  _miniChart(isUp: true),
-                ],
-              ),
-              const SizedBox(height: 20),
-
-              // Index Cards
-              Row(
-                children: [
-                  Expanded(
-                    child: _indexCard(
-                      "S&P 500",
-                      "Standard & Poor's",
-                      "+49.50%",
-                      true,
-                      prim,
-                      cardBg,
+        child: Column(
+          children: [
+            // Category Tabs
+            Container(
+              height: 60,
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                children: List.generate(categories.length, (i) {
+                  final active = i == _selectedTab;
+                  return Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _selectedTab = i),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            categories[i],
+                            style: TextStyle(
+                              color: active ? prim : Colors.white70,
+                              fontWeight: active
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            width: active ? 40 : 0,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: prim,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _indexCard(
-                      "DOW",
-                      "Dow Jones",
-                      "+1",
-                      true,
-                      prim,
-                      cardBg,
-                    ),
-                  ),
-                ],
+                  );
+                }),
               ),
-              const SizedBox(height: 24),
-
-              // Wishlist
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    "Wishlist",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.add_circle_outline, size: 28),
-                    onPressed: () {},
-                  ),
-                ],
+            ),
+            // Content
+            Expanded(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: _selectedTab == 0
+                    ? const StocksTabContent()
+                    : _selectedTab == 1
+                    ? const FnoTabContent()
+                    : _selectedTab == 2
+                    ? const MutualFundsTabContent()
+                    : const FdTabContent(),
               ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: _wishlistItem(
-                      "AMZN",
-                      "Amazon, Inc.",
-                      "-0.05%",
-                      false,
-                      "assets/ama.png",
-                      cardBg,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _wishlistItem(
-                      "ADBE",
-                      "Adobe, Inc.",
-                      "+0.32%",
-                      true,
-                      "assets/ado.png",
-                      cardBg,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              // Stocks
-              const Text(
-                "Stocks",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 12),
-              _stockItem(
-                "NFLX",
-                "Netflix, Inc.",
-                "\$88.91",
-                "+1.29%",
-                true,
-                "assets/n.png",
-                cardBg,
-              ),
-              const SizedBox(height: 12),
-              _stockItem(
-                "AAPL",
-                "Apple, Inc.",
-                "\$142.65",
-                "+0.81%",
-                true,
-                "assets/a.png",
-                cardBg,
-              ),
-              const SizedBox(height: 12),
-              _stockItem(
-                "FB",
-                "Facebook, Inc.",
-                "\$343.01",
-                "+1.07%",
-                true,
-                "assets/fb.png",
-                cardBg,
-              ),
-              const SizedBox(height: 80),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
-
-      // REPLACED with SharedBottomNav → Perfect navigation (no duplicates!)
       bottomNavigationBar: SharedBottomNav(
         currentIndex: 0,
         parentContext: context,
       ),
     );
   }
+}
 
-  // ───── ALL YOUR ORIGINAL WIDGETS BELOW (UNCHANGED) ─────
+// ======================== TAB CONTENTS ========================
 
-  Widget _miniChart({required bool isUp}) {
-    return SizedBox(
-      width: 80,
-      height: 32,
-      child: CustomPaint(
-        painter: _LineChartPainter(
-          data: [1, 2, 3, 5, 4, 6, 7],
-          color: isUp ? const Color(0xFF34C759) : Colors.red,
-        ),
-      ),
-    );
-  }
-
-  Widget _indexCard(
-    String title,
-    String subtitle,
-    String change,
-    bool isUp,
-    Color prim,
-    Color bg,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(12),
-      ),
+class StocksTabContent extends StatelessWidget {
+  const StocksTabContent({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-          Text(
-            subtitle,
-            style: const TextStyle(fontSize: 12, color: Color(0xFF8A8A8A)),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Text(
-                change,
-                style: TextStyle(
-                  color: isUp ? const Color(0xFF34C759) : Colors.red,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const Spacer(),
-              Icon(
-                isUp ? Icons.trending_up : Icons.trending_down,
-                size: 16,
-                color: isUp ? const Color(0xFF34C759) : Colors.red,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _wishlistItem(
-    String symbol,
-    String name,
-    String change,
-    bool isUp,
-    String logo,
-    Color bg,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(radius: 16, backgroundImage: AssetImage(logo)),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  symbol,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-                Text(
-                  name,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF8A8A8A),
-                  ),
-                ),
-              ],
+          const Text(
+            'Popular Stocks',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
             ),
           ),
-          Column(
-            children: [
-              Text(
-                change,
-                style: TextStyle(
-                  color: isUp ? const Color(0xFF34C759) : Colors.red,
-                  fontSize: 13,
-                ),
-              ),
-              _miniChart(isUp: isUp),
-            ],
+          const SizedBox(height: 16),
+          _stockCard('RELIANCE', '₹2,987.45', '+45.20 (+1.53%)', true),
+          _stockCard('TCS', '₹4,123.00', '-23.10 (-0.56%)', false),
+          _stockCard('HDFCBANK', '₹1,678.90', '+34.50 (+2.10%)', true),
+          const SizedBox(height: 20),
+          const Text(
+            'Gainers & Losers',
+            style: TextStyle(color: Colors.white, fontSize: 16),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _stockItem(
-    String symbol,
-    String name,
-    String price,
-    String change,
-    bool isUp,
-    String logo,
-    Color bg,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(radius: 20, backgroundImage: AssetImage(logo)),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  symbol,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-                Text(
-                  name,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF8A8A8A),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(price, style: const TextStyle(fontWeight: FontWeight.w600)),
-              Text(
-                change,
-                style: TextStyle(
-                  color: isUp ? const Color(0xFF34C759) : Colors.red,
-                  fontSize: 13,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(width: 8),
-          _miniChart(isUp: isUp),
+          const SizedBox(height: 12),
+          _gainerLoserCard('ADANIENT', '+8.2%', true),
+          _gainerLoserCard('WIPRO', '-5.1%', false),
         ],
       ),
     );
   }
 }
 
-class _LineChartPainter extends CustomPainter {
-  final List<double> data;
-  final Color color;
-  _LineChartPainter({required this.data, required this.color});
-
+class FnoTabContent extends StatelessWidget {
+  const FnoTabContent({super.key});
   @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 2
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    final path = Path();
-    final stepX = size.width / (data.length - 1);
-    path.moveTo(0, size.height - data[0] * size.height / 7);
-
-    for (int i = 1; i < data.length; i++) {
-      path.lineTo(i * stepX, size.height - data[i] * size.height / 7);
-    }
-
-    canvas.drawPath(path, paint);
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Markets Today',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              Row(
+                children: [
+                  Text(
+                    'View all',
+                    style: TextStyle(
+                      color: Color(0xFF6C63FF),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const Icon(
+                    Icons.arrow_forward_ios,
+                    size: 14,
+                    color: Color(0xFF6C63FF),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xFF111419),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _indexCard('SENSEX', '84,950.95', '+388.17 (+0.46%)', true),
+                  const SizedBox(width: 12),
+                  _indexCard(
+                    'BANKNIFTY',
+                    '58,962.70',
+                    '+445.15 (+0.76%)',
+                    true,
+                  ),
+                  const SizedBox(width: 12),
+                  _indexCard('NIFTY', '25,911.95', '+104.00 (+0.40%)', true),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 18),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Top Commodities',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF16302E),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  'LIVE',
+                  style: TextStyle(color: Colors.greenAccent, fontSize: 12),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.05,
+            children: const [
+              CommodityCard(
+                title: 'Crude Oil',
+                price: '₹5,326.00',
+                change: '-₹16.00 (-0.30%)',
+                red: true,
+              ),
+              CommodityCard(
+                title: 'Natural Gas',
+                price: '₹396.10',
+                change: '-₹4.30 (-1.07%)',
+                red: true,
+              ),
+              CommodityCard(
+                title: 'Gold',
+                price: '₹1,23,130.00',
+                change: '-₹431.00 (-0.35%)',
+                red: true,
+              ),
+              CommodityCard(
+                title: 'Silver',
+                price: '₹1,55,681.00',
+                change: '-₹337.00 (-0.22%)',
+                red: true,
+              ),
+            ],
+          ),
+          const SizedBox(height: 80),
+        ],
+      ),
+    );
   }
+}
+
+class MutualFundsTabContent extends StatelessWidget {
+  const MutualFundsTabContent({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          _fundCard('SBI Small Cap Fund', '₹182.45', '+2.1%', true),
+          _fundCard('HDFC Mid-Cap Opportunities', '₹156.78', '+1.8%', true),
+          _fundCard('Axis Bluechip Fund', '₹58.23', '-0.4%', false),
+          const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF111419),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Text(
+              'Start SIP from ₹500/month',
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class FdTabContent extends StatelessWidget {
+  const FdTabContent({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          _fdCard('Bajaj Finance FD', '8.6%', 'AAA Rated'),
+          _fdCard('Shriram Finance', '8.4%', 'AA+ Rated'),
+          _fdCard('Mahindra Finance', '8.1%', 'AA Rated'),
+          const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: const Color(0xFF111419),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              children: [
+                const Text(
+                  'Safe & Secure',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'FDs up to ₹5 lakh insured by DICGC',
+                  style: TextStyle(color: Colors.grey[400]),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ======================== REUSABLE WIDGETS (FULLY WRITTEN) ========================
+
+Widget _indexCard(String title, String value, String change, bool up) {
+  return Container(
+    width: 220,
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      color: const Color(0xFF0F1418),
+      borderRadius: BorderRadius.circular(10),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const Spacer(),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF101216),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: const Text(
+                'Expiry Thu',
+                style: TextStyle(color: Colors.white70, fontSize: 12),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Text(
+          value,
+          style: TextStyle(
+            color: up ? const Color(0xFF34C759) : Colors.redAccent,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(change, style: const TextStyle(color: Colors.white70)),
+      ],
+    ),
+  );
+}
+
+Widget _stockCard(String name, String price, String change, bool up) {
+  return Container(
+    margin: const EdgeInsets.only(bottom: 12),
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: const Color(0xFF0F1418),
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Row(
+      children: [
+        Expanded(
+          child: Text(
+            name,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              price,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              change,
+              style: TextStyle(color: up ? Colors.green : Colors.red),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _gainerLoserCard(String name, String change, bool up) {
+  return ListTile(
+    title: Text(name, style: const TextStyle(color: Colors.white)),
+    trailing: Text(
+      change,
+      style: TextStyle(
+        color: up ? Colors.green : Colors.red,
+        fontWeight: FontWeight.bold,
+      ),
+    ),
+  );
+}
+
+Widget _fundCard(String name, String nav, String change, bool up) {
+  return Container(
+    margin: const EdgeInsets.only(bottom: 12),
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: const Color(0xFF0F1418),
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Row(
+      children: [
+        Expanded(
+          child: Text(
+            name,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(nav, style: const TextStyle(color: Colors.white)),
+            Text(
+              change,
+              style: TextStyle(color: up ? Colors.green : Colors.red),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _fdCard(String name, String rate, String rating) {
+  return Container(
+    margin: const EdgeInsets.only(bottom: 12),
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: const Color(0xFF0F1418),
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Row(
+      children: [
+        Expanded(
+          child: Text(
+            name,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              rate,
+              style: const TextStyle(
+                color: Color(0xFF6C63FF),
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(rating, style: const TextStyle(color: Colors.grey)),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
+class CommodityCard extends StatelessWidget {
+  final String title;
+  final String price;
+  final String change;
+  final bool red;
+  const CommodityCard({
+    super.key,
+    required this.title,
+    required this.price,
+    required this.change,
+    this.red = false,
+  });
 
   @override
-  bool shouldRepaint(covariant CustomPainter old) => false;
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0F1418),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF111418),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.all_inbox,
+                  color: Colors.white70,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0B0D0F),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: const Text(
+              'Options Expiry Today',
+              style: TextStyle(color: Colors.white70, fontSize: 12),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            price,
+            style: TextStyle(
+              color: red ? Colors.redAccent : Colors.greenAccent,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(change, style: const TextStyle(color: Colors.white70)),
+        ],
+      ),
+    );
+  }
 }

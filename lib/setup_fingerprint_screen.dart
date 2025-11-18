@@ -1,6 +1,8 @@
-// lib/setup_fingerprint_screen.dart
+// lib/screens/setup_fingerprint_screen.dart
 import 'package:flutter/material.dart';
-import 'utils.dart';
+import 'package:local_auth/local_auth.dart';
+import '../utils.dart';
+import 'setup_pin_screen.dart';
 
 class SetupFingerprintScreen extends StatefulWidget {
   const SetupFingerprintScreen({super.key});
@@ -14,6 +16,10 @@ class _SetupFingerprintScreenState extends State<SetupFingerprintScreen>
   late final AnimationController _anim;
   late final Animation<double> _fade;
   late final Animation<double> _scale;
+  final LocalAuthentication auth = LocalAuthentication();
+
+  bool _isAuthenticating = false;
+  String _authStatus = "Touch the sensor";
 
   @override
   void initState() {
@@ -41,20 +47,57 @@ class _SetupFingerprintScreenState extends State<SetupFingerprintScreen>
     super.dispose();
   }
 
+  Future<void> _authenticate() async {
+    bool authenticated = false;
+    try {
+      setState(() {
+        _isAuthenticating = true;
+        _authStatus = "Authenticating...";
+      });
+
+      authenticated = await auth.authenticate(
+        localizedReason: 'Scan your fingerprint to secure your account',
+        options: const AuthenticationOptions(
+          useErrorDialogs: true,
+          stickyAuth: true,
+          biometricOnly: true,
+        ),
+      );
+
+      setState(() {
+        _isAuthenticating = false;
+        _authStatus = authenticated ? "Success!" : "Failed. Try again";
+      });
+
+      if (authenticated) {
+        await Future.delayed(const Duration(milliseconds: 800));
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            fadePageRoute(const SetupPinScreen()),
+          );
+        }
+      }
+    } catch (e) {
+      setState(() {
+        _isAuthenticating = false;
+        _authStatus =
+            "Error: ${e.toString().contains("not available") ? "No fingerprint enrolled" : "Try again"}";
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final prim = theme.colorScheme.primary;
-    final isDark = theme.brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF121212) : Colors.white;
+    const prim = Color(0xFF6C63FF);
 
     return Scaffold(
-      backgroundColor: bg,
+      backgroundColor: const Color(0xFF0E1115),
       appBar: AppBar(
-        backgroundColor: bg,
+        backgroundColor: const Color(0xFF0E1115),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black54),
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white70),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -64,71 +107,96 @@ class _SetupFingerprintScreenState extends State<SetupFingerprintScreen>
           padding: const EdgeInsets.symmetric(horizontal: 32),
           child: Column(
             children: [
-              const Spacer(flex: 4),
+              const Spacer(flex: 3),
 
-              // Animated Fingerprint Icon
+              // Fingerprint Icon (pulses when authenticating)
               ScaleTransition(
                 scale: _scale,
-                child: Container(
-                  width: 120,
-                  height: 120,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  width: 160,
+                  height: 160,
                   decoration: BoxDecoration(
-                    color: prim.withOpacity(0.1),
                     shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: _isAuthenticating
+                          ? [prim.withOpacity(0.6), prim.withOpacity(0.1)]
+                          : [prim.withOpacity(0.3), prim.withOpacity(0.05)],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: prim.withOpacity(_isAuthenticating ? 0.8 : 0.4),
+                        blurRadius: _isAuthenticating ? 50 : 30,
+                        spreadRadius: _isAuthenticating ? 10 : 5,
+                      ),
+                    ],
                   ),
-                  child: Icon(Icons.fingerprint, size: 80, color: prim),
+                  child: Icon(
+                    Icons.fingerprint,
+                    size: 100,
+                    color: _isAuthenticating ? Colors.white : prim,
+                  ),
                 ),
               ),
 
-              const SizedBox(height: 48),
+              const SizedBox(height: 60),
 
-              // Title
-              Text(
-                "Fingerprint",
+              const Text(
+                "Add Fingerprint",
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.black,
+                  color: Colors.white,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
 
-              // Subtitle
               Text(
-                "Effortlessly unlock stockline using your\nfingerprint for enhanced security.",
-                style: const TextStyle(
+                _authStatus,
+                style: TextStyle(
                   fontSize: 16,
+                  color: Colors.grey[400],
                   height: 1.5,
-                  color: Color(0xFF8A8A8A),
                 ),
                 textAlign: TextAlign.center,
               ),
 
-              const Spacer(flex: 6),
+              const Spacer(flex: 5),
 
-              // Next Button
+              // Touch Sensor Button
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    // TODO: Trigger biometric enrollment or skip
-                    debugPrint("Fingerprint setup → Next");
-                    // Navigator.push(... next screen)
-                  },
+                child: ElevatedButton.icon(
+                  onPressed: _isAuthenticating ? null : _authenticate,
+                  icon: const Icon(Icons.fingerprint, size: 28),
+                  label: Text(
+                    _isAuthenticating
+                        ? "Authenticating..."
+                        : "Touch the Sensor",
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: prim,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    padding: const EdgeInsets.symmetric(vertical: 20),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
-                    elevation: 0,
+                    elevation: 10,
                   ),
-                  child: const Text(
-                    "Next",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              TextButton(
+                onPressed: () => Navigator.pushReplacement(
+                  context,
+                  fadePageRoute(const SetupPinScreen()),
+                ),
+                child: const Text(
+                  "Skip & Use PIN Only",
+                  style: TextStyle(color: Colors.grey),
                 ),
               ),
 
